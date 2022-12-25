@@ -1,4 +1,3 @@
 # SalesforceREST
-it contains the code that I am using in my course
-Hi Guys, This is deepika khanna from http://tutorialrack.com/
-I have added all the classes and TEst classes that i will be creating in this course.
+Hi Guys, This is Amit kumar, a salesforce developer.
+I have added all the classes that is helpful in learning integration in salesforce.
