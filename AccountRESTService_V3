@@ -1,98 +1,94 @@
 /****************************************************************************************************
- * Description - Sample Apex REST service with GET method
- * Author - Deepika Khanna
+ * Description - Sample Apex REST service modified version of v2  with GET method 
  ****************************************************************************************************/
-
-@RestResource(urlMapping='/v3/accounts/*')
-global with sharing class AccountRESTService_V3 {
-    
-    @HttpGet
-    global static AccountWrapper doGet() {
-        RestRequest req = RestContext.request;
-        RestResponse res = RestContext.response;
-        AccountWrapper response = new AccountWrapper();
+@restresource(urlmapping= '/v3/accounts/*')
+global with sharing class AccountRestService_v3 {
+    @httpget
+    global static wrapperclass findaccorsrchbynam(){
+        restrequest req = restcontext.request;
+        restresponse resp = restcontext.response; 
+        wrapperclass wrapcls = new wrapperclass();
         
-        String accountId = req.requestURI.substring(req.requestURI.lastIndexOf('/')+1);
-        
-        if(doSearch(accountId)) {
-            searchAccounts(req, res, response);
+        string accid = req.requestURI.substring(req.requestURI.lastindexof('/')+1);
+        if (dosearch(accid)){
+            srchbyname(req,resp,wrapcls);            
         }
-        else {
-            findAccount(res, response, accountId);
+        else{
+            findacc(resp,accid,wrapcls);
         }
-        
-        return response;
+        return wrapcls;
     }
     
-
-    // If the item to the right of the last forward slash is "accounts", the request went to v3/accounts?Name=United
-    // Else the request went to v3/accounts/<something>, which is not a search, but a specific entity
-    private static boolean doSearch(String accountId) {
-        if(accountId == 'accounts') {
+    private static boolean dosearch(string accd){
+        if (accd == 'accounts'){
             return true;
-        }
-        return false;
+                    }
+        else 
+            return false;
+        
     }
-    
-    //If the request came to /v3/accounts, then we want to execute a search
-    private static void searchAccounts(RestRequest req, RestResponse res, AccountWrapper response) {
+     private static void findacc(restresponse resp, string accid, wrapperclass wrapcls){
+        if (accid != null && accid !='')
+           {
+            list <account> result = [select id, name,phone from account where id =: accid];
+                 if(result!= null && result.size()>0)
+                     {
+                    wrapcls.status = 'successful';
+                    wrapcls.msg =' account found :';
+                    wrapcls.acc= result;
+                     }
+                      else
+                      {
+                     wrapcls.status= 'error';
+                     wrapcls.msg= 'this account cannot be found due to input error';
+                     resp.statuscode = 404;
+                      }
+           }       
+        else
+            {
+            wrapcls.status='error';
+            wrapcls.msg='please specify an account id';
+            resp.statusCode=400;
+            }
+    }
 
-        //Use the RestRequest's params to fetch the Name parameter
-        String searchTerm = req.params.get('Name');
-        
-        if(searchTerm == null || searchTerm == '') {
-            response.status = 'Error';
-            response.message = 'You must provide a Name for your search term.';
-            res.StatusCode = 400;
-        }
-        else {
-            String searchText = '%'+searchTerm+'%';
-            List<Account> searchResults = [SELECT Id, Name, Phone, Website FROM Account WHERE Name LIKE : searchText];
-            
-            if(searchResults != null && searchResults.size() > 0) {
-                response.acctList = searchResults;
-                response.status = 'Success';
-                response.message = searchResults.size() + ' Accounts were found that matched your search term.';
-            }
-            else {
-                response.status = 'Error';
-                response.message = 'No Accounts where found based on that Name, please search again.';
-            }
-        }
-    }
     
-    //If the request came to v3/accounts/<Id>, then we want to find a specific account
-    private static void findAccount(RestResponse res, AccountWrapper response, String accountId) {
-        
-        // Provided we recevied an Id, perform the search and return the results
-        if(accountId != null && accountId != '') {
-            List<Account> result = [SELECT Id, Name, Phone, Website FROM Account WHERE Id =: accountId];
-            
-            if(result != null && result.size() > 0) {
-                response.acctList.add(result[0]);
-                response.status = 'Success';
-            }
-            else {
-                response.status = 'Error';
-                response.message = 'This account could not be found, please try again.';
-                res.StatusCode = 404;
-            }
+     private static void srchbyname(restrequest req, restresponse resp, wrapperclass wrapcls){
+        string searchname = req.params.get('accountname');
+        if (searchname == null || searchname =='')
+        {
+            wrapcls.status='error';
+            wrapcls.msg ='please provide a name for search';
+            resp.statuscode	=400; 
         }
-        // If the request came to /v3/accounts/ (without an Account Id), return an error
-        else {
-            response.status = 'Error';
-            response.message = 'You must specify an Id.';
-            res.StatusCode = 400;
+        else{
+            string name = '%'+searchname+'%';
+            list<account>result = [select id,name,phone from account where name like: name];
+            if (result != null && result.size()> 0)
+            {
+            wrapcls.acc= result;
+            wrapcls.msg = 'accounts found :'+ result.size();
+            wrapcls.status ='successful';
+            }
+                 else{
+            wrapcls.acc= null;
+            wrapcls.msg= ' no account found';
+            wrapcls.status = 'error';  
+           }
         }
     }
+     
+
+   
     
-    global class AccountWrapper {
-        public List<Account> acctList;
-        public String status;
-        public String message;
-        
-        public AccountWrapper(){
-            acctList = new List<Account>();
+    
+     global  class wrapperclass{
+        public list<account> acc;
+        public string msg;
+        public string status;
+        public wrapperclass(){
+            
         }
     }
+
 }
