@@ -1,3 +1,12 @@
+/****************************************************************************************************
+ * Description - Create a Resource which contains 2 methods Get and Post. Through Get method you should be able to 
+ * retrieve a contact based on contact Id. 
+ * In Post method, you will pass firstName,lastName,Phone and email in request and you will create a new 
+ * Contact record in salesforce.
+ 
+ ****************************************************************************************************/
+
+
 @RestResource(urlMapping='/Contacts/*')
 global with sharing class Assingment1_Contacts{
   
